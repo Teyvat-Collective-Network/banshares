@@ -13,14 +13,13 @@
         if (!data.user) return;
 
         const [user_data, guilds_data] = await Promise.all(
-            [
-                `${PUBLIC_TCN_API}/users/${data.user.id}`,
-                `${PUBLIC_TCN_API}/guilds`,
-            ].map(async (url) => {
-                const response = await fetch(url);
-                if (!response.ok) return {};
-                return await response.json();
-            })
+            [`${PUBLIC_TCN_API}/users/${data.user.id}`, `${PUBLIC_TCN_API}/guilds`].map(
+                async (url) => {
+                    const response = await fetch(url);
+                    if (!response.ok) return {};
+                    return await response.json();
+                },
+            ),
         );
 
         const map = new Map<string, string>();
@@ -58,7 +57,7 @@
         for (const id of list)
             if (!id.match(/^[1-9][0-9]{16,19}$/))
                 return (error = `Invalid ID: <code>${escape(
-                    id
+                    id,
                 )}</code> is not a valid Discord ID.`);
 
         fetch(`/fetch?session=${session}`, {
@@ -80,24 +79,12 @@
 <svelte:window
     bind:scrollY={y}
     on:keydown={(e) =>
-        e.key === "Enter" &&
-        e.ctrlKey &&
-        document.querySelector("form")?.requestSubmit()}
+        e.key === "Enter" && e.ctrlKey && document.querySelector("form")?.requestSubmit()}
 />
 
-<div
-    id="header"
-    style="padding: {Math.max(0, 2 - y / 50)}em 0; --opacity: {Math.min(
-        100,
-        y
-    )}%"
->
+<div id="header" style="padding: {Math.max(0, 2 - y / 50)}em 0; --opacity: {Math.min(100, y)}%">
     <div class="container row">
-        <img
-            alt="TCN Icon"
-            src="/favicon.png"
-            width="{Math.max(50, 100 - y)}px"
-        />
+        <img alt="TCN Icon" src="/favicon.png" width="{Math.max(50, 100 - y)}px" />
         <h1 style="padding-left: 0.5em">TCN Banshare Form</h1>
     </div>
 </div>
@@ -106,13 +93,11 @@
         Logged in as <b>{data.user.username}</b><span style="opacity: 40%"
             >#{data.user.discriminator}</span
         >. Not you? <a href="/auth/logout">Log Out</a>
-        <br />
-        <a href="/manage">Manage settings for your servers</a>
     </div>
     {#if servers?.length === 0}
         <div class="error">
-            You are not staff on any TCN servers. If you believe this is a
-            mistake, contact your server's owner or a TCN observer.
+            You are not staff on any TCN servers. If you believe this is a mistake, contact your
+            server's owner or a TCN observer.
         </div>
     {:else}
         {#if form?.error}
@@ -135,16 +120,14 @@
                 {#if ids.trim() !== ""}
                     <div>
                         <br />
-                        <button type="button" on:click={check_ids}>
-                            Check IDs
-                        </button>
+                        <button type="button" on:click={check_ids}> Check IDs </button>
                         (shows the users' tags if all IDs are valid)
                     </div>
                 {/if}
                 <h3>Reason</h3>
                 <p>
-                    If you need more than 498 characters, you should probably be
-                    putting it into the evidence field instead.
+                    If you need more than 498 characters, you should probably be putting it into the
+                    evidence field instead.
                 </p>
                 <Textarea
                     name="reason"
@@ -157,21 +140,18 @@
                 />
                 <h3>Evidence</h3>
                 <p>
-                    For images, use Imgur or a similar service. Discord hosted
-                    image links work too, but keep in mind that deleting the
-                    message containing the image will eventually cause the image
-                    link to break.
+                    For images, use Imgur or a similar service. Discord hosted image links work too,
+                    but keep in mind that deleting the message containing the image will eventually
+                    cause the image link to break.
                 </p>
                 <p>
-                    If you need more than 1000 characters, please create a
-                    document and link it here. Include some basic information in
-                    the evidence so people can see roughly what your document
-                    contains.
+                    If you need more than 1000 characters, please create a document and link it
+                    here. Include some basic information in the evidence so people can see roughly
+                    what your document contains.
                 </p>
                 <p>
-                    Please spoiler anything suggestive and break up any image
-                    links to explicit / triggering content so people can't
-                    accidentally access them.
+                    Please spoiler anything suggestive and break up any image links to explicit /
+                    triggering content so people can't accidentally access them.
                 </p>
                 <Textarea
                     name="evidence"
@@ -195,19 +175,14 @@
                     />
                 {:else}
                     <select name="server" required>
-                        <option
-                            selected={servers.length > 1}
-                            disabled
-                            hidden
-                            value=""
-                        >
+                        <option selected={servers.length > 1} disabled hidden value="">
                             Select Server
                         </option>
                         {#each servers as [id, name]}
                             <option
                                 value={id}
-                                selected={servers.length === 1 ||
-                                    form?.server === id}>{name}</option
+                                selected={servers.length === 1 || form?.server === id}
+                                >{name}</option
                             >
                         {/each}
                     </select>
@@ -226,9 +201,7 @@
                     </li>
                 </ul>
                 <select name="severity" required>
-                    <option selected disabled hidden value="">
-                        Select Severity
-                    </option>
+                    <option selected disabled hidden value=""> Select Severity </option>
                     {#each ["Low", "Medium", "Critical"] as sev}
                         <option
                             value={sev.toLowerCase()}
@@ -242,51 +215,33 @@
             <div class="glass">
                 <h3>Urgency</h3>
                 <p>
-                    Check the box below to instruct the bot to ping all
-                    observers instead of just a few to review this.
+                    Check the box below to instruct the bot to ping all observers instead of just a
+                    few to review this.
                 </p>
                 <label>
-                    <input
-                        type="checkbox"
-                        name="urgent"
-                        checked={form?.urgent}
-                    />
+                    <input type="checkbox" name="urgent" checked={form?.urgent} />
                     <b>This banshare is urgent.</b>
                 </label>
             </div>
             <div class="glass">
-                <input
-                    type="submit"
-                    name="submit"
-                    value="Submit"
-                    style="font-weight: bold"
-                />
-                <input
-                    type="submit"
-                    name="submit"
-                    value="Submit Without Validation"
-                />
-                <input
-                    type="submit"
-                    name="submit"
-                    value="Submit Without Checking IDs"
-                />
+                <input type="submit" name="submit" value="Submit" style="font-weight: bold" />
+                <input type="submit" name="submit" value="Submit Without Validation" />
+                <input type="submit" name="submit" value="Submit Without Checking IDs" />
                 <br />
                 <br />
-                <b>WARNING:</b> You should only submit without checking IDs if
-                your ID list is a link instead of an actual list of IDs. Doing
-                this will also prevent automatic banning. Consider just pasting
-                your entire ID list instead if possible - the bot will collapse
-                it into a document link if it's too long.
+                <b>WARNING:</b> You should only submit without checking IDs if your ID list is a
+                link instead of an actual list of IDs. Doing this will also prevent automatic
+                banning. Consider just pasting your entire ID list instead if possible - the bot
+                will collapse it into a document link if it's too long.
                 <br />
                 <br />
-                <b>This may take some time</b> if you have submitted a long ID
-                list, as the bot needs time to fetch all of the users.
+                <b>This may take some time</b> if you have submitted a long ID list, as the bot
+                needs time to fetch all of the users.
                 <br />
                 <br />
-                If the list is very long and you want to get the banshare published
-                ASAP, use "Submit Without Validation", which will check if the IDs
-                look correct but won't fetch all of the users.
+                If the list is very long and you want to get the banshare published ASAP, use "Submit
+                Without Validation", which will check if the IDs look correct but won't fetch all of
+                the users.
             </div>
         </form>
     {/if}
