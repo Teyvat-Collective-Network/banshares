@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { PUBLIC_TCN_API } from "$env/static/public";
     import { Redirect } from "@daedalus-discord/webkit";
 
     export let data: any;
@@ -22,7 +23,9 @@
 
     <body>
         {#if !data.user}
-            <Redirect to="/auth/login" />
+            <Redirect
+                to="{PUBLIC_TCN_API}/auth?redirect={encodeURIComponent(window.location.href)}"
+            />
         {:else}
             <slot />
         {/if}
