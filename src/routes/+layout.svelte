@@ -24,7 +24,7 @@
 
     <body>
         {#if !data.user}
-            <Redirect to="{PUBLIC_TCN_API}/auth?redirect={encodeURIComponent($page.url)}" />
+            <Redirect to="{PUBLIC_TCN_API}/auth?redirect={encodeURIComponent($page.url.href)}" />
         {:else}
             <slot />
         {/if}
