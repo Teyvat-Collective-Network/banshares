@@ -1,6 +1,6 @@
 <script lang="ts">
     import { page } from "$app/stores";
-    import { PUBLIC_TCN_API } from "$env/static/public";
+    import { PUBLIC_TCN_AUTH } from "$env/static/public";
     import { Redirect } from "@daedalus-discord/webkit";
 
     export let data: any;
