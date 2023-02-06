@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PUBLIC_TCN_API } from "$env/static/public";
+    import { PUBLIC_TCN_API, PUBLIC_TCN_AUTH } from "$env/static/public";
     import { LoadingSpinner, Modal, Textarea } from "@daedalus-discord/webkit";
     import { onMount } from "svelte";
     import { escape } from "svelte/internal";
@@ -92,7 +92,7 @@
     <div class="glass">
         Logged in as <b>{data.user.username}</b><span style="opacity: 40%"
             >#{data.user.discriminator}</span
-        >. Not you? <a href="/auth/logout">Log Out</a>
+        >. Not you? <a href="{PUBLIC_TCN_AUTH}/logout">Log Out</a>
     </div>
     {#if servers?.length === 0}
         <div class="error">
