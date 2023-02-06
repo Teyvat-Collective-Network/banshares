@@ -1,8 +1,4 @@
-import {
-    ApplicationCommandOptionType,
-    ApplicationCommandType,
-    PermissionFlagsBits,
-} from "discord.js";
+import { ApplicationCommandOptionType, ApplicationCommandType } from "discord.js";
 import type { RequestHandler } from "./$types.js";
 
 export const GET: RequestHandler = () =>
@@ -12,7 +8,7 @@ export const GET: RequestHandler = () =>
                 type: ApplicationCommandType.ChatInput,
                 name: "banshare",
                 description: "control banshare settings",
-                defaultMemberPermissions: PermissionFlagsBits.Administrator,
+                defaultMemberPermissions: "16",
                 dmPermission: false,
                 options: [
                     {
