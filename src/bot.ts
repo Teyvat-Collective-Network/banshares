@@ -60,7 +60,7 @@ const rescinded = [
             },
         ],
     },
-] as any;f
+] as any;
 
 const report = [
     {
