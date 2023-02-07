@@ -60,7 +60,7 @@ const rescinded = [
             },
         ],
     },
-] as any;
+] as any;f
 
 const report = [
     {
@@ -115,44 +115,33 @@ bot.on("interactionCreate", async (interaction) => {
             const subgroup = interaction.options.getSubcommandGroup(false);
             const subcommand = interaction.options.getSubcommand(false);
 
-            if (subgroup === "post") {
+            if (subgroup === "post" || subgroup === "log") {
+                const collection = subgroup === "post" ? db.channels : db.logging;
+
                 if (subcommand === "here") {
-                    await db.channels.findOneAndUpdate(
+                    if (!interaction.channel.permissionsFor(interaction.guild.members.me).has(PermissionFlagsBits.ViewChannel | PermissionFlagsBits.SendMessages | PermissionFlagsBits.EmbedLinks | PermissionFlagsBits.AttachFiles)) {
+                        await interaction.editReply("Please grant the bot permission to view this channel and send messages, embed links, and attach files.");
+                        return;
+                    }
+
+                    await collection.findOneAndUpdate(
                         { guild: interaction.guild!.id },
                         { $set: { channel: interaction.channel!.id } },
                         { upsert: true }
                     );
 
                     await interaction.editReply(
-                        "Banshares will now be posted here."
+                        `${subgroup === "post" ? "Banshares" : "Logs"} will now be posted here.`
                     );
                 } else if (subcommand === "none") {
-                    await db.channels.findOneAndDelete({
+                    await collection.findOneAndDelete({
                         guild: interaction.guild!.id,
                     });
 
                     await interaction.editReply(
-                        "You will no longer receive banshares."
-                    );
-                }
-            } else if (subgroup === "log") {
-                if (subcommand === "here") {
-                    await db.logging.findOneAndUpdate(
-                        { guild: interaction.guild!.id },
-                        { $set: { channel: interaction.channel!.id } },
-                        { upsert: true }
-                    );
-
-                    await interaction.editReply(
-                        "Logs will now be posted here."
-                    );
-                } else if (subcommand === "none") {
-                    await db.logging.findOneAndDelete({
-                        guild: interaction.guild!.id,
-                    });
-
-                    await interaction.editReply(
-                        "Logs will no longer be posted."
+                        subgroup === "post"
+                            ? "You will no longer receive banshares."
+                            : "Logs will no longer be posted."
                     );
                 }
             } else if (!subgroup) {
@@ -164,7 +153,7 @@ bot.on("interactionCreate", async (interaction) => {
 
                     await db.settings.findOneAndUpdate(
                         { guild: interaction.guild!.id },
-                        { $set: { button: enable } },
+                        { $set: { no_button: !enable } },
                         { upsert: true }
                     );
 
@@ -535,7 +524,7 @@ bot.on("interactionCreate", async (interaction) => {
                                     ],
                                 },
                             ];
-                        } else if (settings?.button) {
+                        } else if (!settings?.no_button) {
                             components = [
                                 {
                                     type: ComponentType.ActionRow,
