@@ -789,6 +789,7 @@ async function execute(
             if (executor)
                 try {
                     member = await guild.members.fetch(id);
+                    user = member.user;
                 } catch {}
             if (!member) user = await bot.users.fetch(id);
         } catch {
