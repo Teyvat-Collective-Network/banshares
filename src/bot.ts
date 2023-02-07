@@ -346,7 +346,7 @@ bot.on("interactionCreate", async (interaction) => {
                 await db.settings.findOne({ guild: interaction.guild!.id }),
                 interaction.guild!,
                 message,
-                interaction.user
+                interaction.member
             );
 
             await interaction.editReply("Banshare executed!");
@@ -773,7 +773,7 @@ async function execute(
     settings: any,
     guild: Guild,
     message: Message,
-    executor?: User
+    executor?: GuildMember
 ) {
     const mod = executor ? { mod: executor.id } : {};
 
@@ -782,16 +782,23 @@ async function execute(
     const failed: User[] = [];
 
     for (const id of banshare.id_list as string[]) {
+        let member: GuildMember;
         let user: User;
 
         try {
-            user = await bot.users.fetch(id);
+            if (executor)
+                try {
+                    member = await guild.members.fetch(id);
+                } catch {}
+            if (!member) user = await bot.users.fetch(id);
         } catch {
             missed.push(id);
             continue;
         }
 
         try {
+            if (member && member.roles.highest.comparePositionTo(executor.roles.highest) > 0) throw 0;
+
             await guild.bans.create(id);
             banned.push(user);
 
