@@ -797,7 +797,7 @@ async function execute(
         }
 
         try {
-            if (member && member.roles.highest.comparePositionTo(executor.roles.highest) > 0) throw 0;
+            if (member && member.roles.highest.comparePositionTo(executor.roles.highest) >= 0) throw 0;
 
             await guild.bans.create(id);
             banned.push(user);
