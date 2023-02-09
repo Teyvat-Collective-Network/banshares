@@ -74,6 +74,7 @@ const report = [
                     "Reason does not justify a banshare.",
                     "Evidence is insufficient.",
                     "Evidence is forged.",
+                    "Severity should be increased.",
                 ].map((text) => ({ label: text, value: text })),
                 placeholder: "Report This Banshare",
             } satisfies StringSelectMenuComponentData,
