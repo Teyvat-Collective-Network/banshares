@@ -341,6 +341,7 @@ bot.on("interactionCreate", async (interaction) => {
             const lock = await db.executed.findOneAndUpdate(
                 { post: interaction.message.id },
                 { $set: { executed: true } },
+                { upsert: true },
             );
 
             if (lock.value?.executed) {
@@ -710,6 +711,10 @@ bot.on("interactionCreate", async (interaction) => {
 
                         const message = await channel.messages.fetch(post.message);
 
+                        await message.reply(
+                            `This banshare was escalated to ${severity} severity. The explanation given is below:\n\n${reason}`,
+                        );
+
                         const embed = message.embeds[0].toJSON();
 
                         embed.fields?.forEach(
@@ -720,14 +725,22 @@ bot.on("interactionCreate", async (interaction) => {
                             autoban(threshold, severity) &&
                             !autoban(threshold, banshare.value!.severity)
                         ) {
-                            await message.edit({ components: autobanning.concat(report) });
-                            await execute(banshare.value, settings, message.guild!, message);
-                            await message.edit({ components: finished.concat(report) });
-                        } else await message.edit({ embeds: [embed] });
+                            await message.edit({
+                                embeds: [embed],
+                                components: autobanning.concat(report),
+                            });
 
-                        await message.reply(
-                            `This banshare was escalated to ${severity} severity. The explanation given is below:\n\n${reason}`,
-                        );
+                            const lock = await db.executed.findOneAndUpdate(
+                                { post: message.id },
+                                { $set: { executed: true } },
+                                { upsert: true },
+                            );
+
+                            if (!lock.value?.executed) {
+                                await execute(banshare.value, settings, message.guild!, message);
+                                await message.edit({ components: finished.concat(report) });
+                            }
+                        } else await message.edit({ embeds: [embed] });
                     } catch {}
                 }),
             );
