@@ -397,12 +397,9 @@ bot.on("interactionCreate", async (interaction) => {
         } else if (interaction.customId.startsWith("escalate:")) {
             const severity = interaction.customId.substring(9);
 
-            const banshare = await db.banshares.findOneAndUpdate(
-                { message: interaction.message.id },
-                { $set: { severity } },
-            );
+            const banshare = await db.banshares.findOne({ message: interaction.message.id });
 
-            if (!banshare.value) {
+            if (!banshare) {
                 await interaction.update({
                     content: "This does not appear to be a banshare.",
                     embeds: [],
@@ -741,6 +738,17 @@ bot.on("interactionCreate", async (interaction) => {
             await interaction.editReply({
                 embeds: [embed],
                 components: components(true, severity),
+            });
+
+            const channel = interaction.client.channels.cache.get(LOG ?? "");
+
+            const log = channel?.isTextBased() ? channel.send.bind(channel) : () => {};
+
+            await log({
+                content: `${interaction.user} escalated ${
+                    interaction.message!.url
+                } to ${severity} severity:\n\n${reason}`,
+                allowedMentions: { parse: [] },
             });
         }
     } else if (interaction.isStringSelectMenu()) {
