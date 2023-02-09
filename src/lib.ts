@@ -12,6 +12,26 @@ export function components(published: boolean, severity?: string): any[] {
                         customId: "rescind",
                         label: "Rescind",
                     },
+                    ...(severity === "low"
+                        ? [
+                              {
+                                  type: ComponentType.Button,
+                                  style: ButtonStyle.Primary,
+                                  customId: "escalate:medium",
+                                  label: "SEV: Medium",
+                              },
+                          ]
+                        : []),
+                    ...(severity === "low" || severity === "medium"
+                        ? [
+                              {
+                                  type: ComponentType.Button,
+                                  style: ButtonStyle.Danger,
+                                  customId: "escalate:critical",
+                                  label: "SEV: Critical",
+                              },
+                          ]
+                        : []),
                 ],
             },
         ];

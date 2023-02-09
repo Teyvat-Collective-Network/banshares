@@ -1,8 +1,6 @@
 import { ALERT, DDL_TOKEN, LOG, TOKEN } from "$env/static/private";
 import { PUBLIC_ALLOWLIST, PUBLIC_DDL_API, PUBLIC_TCN_API } from "$env/static/public";
 import {
-    ApplicationCommandOptionType,
-    ApplicationCommandType,
     type ButtonInteraction,
     ButtonStyle,
     Client,
@@ -87,6 +85,36 @@ const report = [
                 style: ButtonStyle.Danger,
                 customId: "report",
                 label: "Report (Custom Reason)",
+            },
+        ],
+    },
+] as any;
+
+const autoban_scheduled = [
+    {
+        type: ComponentType.ActionRow,
+        components: [
+            {
+                type: ComponentType.Button,
+                style: ButtonStyle.Secondary,
+                customId: "-",
+                label: "Auto-ban scheduled",
+                disabled: true,
+            },
+        ],
+    },
+] as any;
+
+const autobanning = [
+    {
+        type: ComponentType.ActionRow,
+        components: [
+            {
+                type: ComponentType.Button,
+                style: ButtonStyle.Secondary,
+                customId: "/",
+                label: "Auto-banning...",
+                disabled: true,
             },
         ],
     },
@@ -274,7 +302,6 @@ bot.on("interactionCreate", async (interaction) => {
                                 label: "Reason",
                                 placeholder:
                                     "Explain why you believe this banshare is problematic and should be rescinded.",
-                                minLength: 50,
                                 maxLength: 1800,
                                 required: true,
                             },
@@ -367,6 +394,42 @@ bot.on("interactionCreate", async (interaction) => {
                 ],
                 components: components(false, severity),
             });
+        } else if (interaction.customId.startsWith("escalate:")) {
+            const severity = interaction.customId.substring(9);
+
+            const banshare = await db.banshares.findOneAndUpdate(
+                { message: interaction.message.id },
+                { $set: { severity } },
+            );
+
+            if (!banshare.value) {
+                await interaction.update({
+                    content: "This does not appear to be a banshare.",
+                    embeds: [],
+                    components: [],
+                });
+
+                return;
+            }
+
+            await interaction.showModal({
+                title: "Escalate Banshare",
+                customId: `confirm-escalation:${severity}`,
+                components: [
+                    {
+                        type: ComponentType.ActionRow,
+                        components: [
+                            {
+                                type: ComponentType.TextInput,
+                                style: TextInputStyle.Paragraph,
+                                customId: "reason",
+                                label: "Reason",
+                                placeholder: `You are about to escalate this banshare to ${severity} severity. This is not reversible!`,
+                            },
+                        ],
+                    },
+                ],
+            });
         } else if (interaction.customId === "publish") {
             if (
                 published.has(interaction.message.id) ||
@@ -415,11 +478,13 @@ bot.on("interactionCreate", async (interaction) => {
             if (!banshare.value)
                 await interaction.editReply({
                     content: "This does not appear to be a banshare.",
+                    embeds: [],
                     components: [],
                 });
             else if (fail || banshare.value.executed)
                 await interaction.editReply({
                     content: "This banshare has been published by someone else already.",
+                    embeds: [],
                     components: [],
                 });
             else {
@@ -427,7 +492,7 @@ bot.on("interactionCreate", async (interaction) => {
 
                 try {
                     const message = await interaction.message.fetchReference();
-                    await message.edit({ components: components(true) });
+                    await message.edit({ components: components(true, banshare.value.severity) });
                     embeds = message.embeds.map((e) => e.toJSON());
 
                     if (message.crosspostable)
@@ -484,20 +549,7 @@ bot.on("interactionCreate", async (interaction) => {
                         if (!banshare.value!.id_list?.length) {
                             // Submitted without checking IDs, so no automation is possible.
                         } else if (autoban(threshold, banshare.value!.severity)) {
-                            components = [
-                                {
-                                    type: ComponentType.ActionRow,
-                                    components: [
-                                        {
-                                            type: ComponentType.Button,
-                                            style: ButtonStyle.Secondary,
-                                            customId: "-",
-                                            label: "Auto-ban scheduled",
-                                            disabled: true,
-                                        },
-                                    ],
-                                },
-                            ];
+                            components = autoban_scheduled;
                         } else if (!settings?.no_button) {
                             components = [
                                 {
@@ -532,21 +584,7 @@ bot.on("interactionCreate", async (interaction) => {
                     if (message.components?.[0]?.components?.[0]?.customId !== "-") return;
 
                     await message.edit({
-                        components: [
-                            {
-                                type: ComponentType.ActionRow,
-                                components: [
-                                    {
-                                        type: ComponentType.Button,
-                                        style: ButtonStyle.Secondary,
-                                        customId: "/",
-                                        label: "Auto-banning...",
-                                        disabled: true,
-                                    },
-                                ],
-                            },
-                            ...report,
-                        ],
+                        components: autobanning.concat(report),
                     });
 
                     await execute(
@@ -578,7 +616,6 @@ bot.on("interactionCreate", async (interaction) => {
                                 style: TextInputStyle.Paragraph,
                                 customId: "explanation",
                                 label: "Explanation",
-                                minLength: 50,
                                 maxLength: 1800,
                                 required: true,
                                 placeholder:
@@ -638,6 +675,73 @@ bot.on("interactionCreate", async (interaction) => {
             }
         } else if (interaction.customId === "confirm-report") {
             await process_report(interaction, interaction.fields.getTextInputValue("reason"));
+        } else if (interaction.customId.startsWith("confirm-escalation:")) {
+            await interaction.deferUpdate();
+
+            const severity = interaction.customId.substring(19);
+            const reason = interaction.fields.getTextInputValue("reason");
+
+            const value = severity[0].toUpperCase() + severity.slice(1);
+
+            const banshare = await db.banshares.findOneAndUpdate(
+                { message: interaction.message!.id },
+                { $set: { severity } },
+            );
+
+            if (!banshare.value) {
+                await interaction.editReply({
+                    content: "This does not appear to be a banshare.",
+                    embeds: [],
+                    components: [],
+                });
+
+                return;
+            }
+
+            const posts = await db.banshare_posts
+                .find({ banshare: interaction.message!.id })
+                .toArray();
+
+            await Promise.all(
+                posts.map(async (post) => {
+                    const settings = await db.settings.findOne({ guild: post.guild });
+                    const threshold = settings?.autoban ?? "none";
+
+                    try {
+                        const channel = await bot.channels.fetch(post.channel);
+                        if (!channel?.isTextBased()) throw 0;
+
+                        const message = await channel.messages.fetch(post.message);
+
+                        const embed = message.embeds[0].toJSON();
+
+                        embed.fields?.forEach(
+                            (field) => field.name === "Severity" && (field.value = value),
+                        );
+
+                        if (
+                            autoban(threshold, severity) &&
+                            !autoban(threshold, banshare.value!.severity)
+                        ) {
+                            await message.edit({ components: autobanning.concat(report) });
+                            await execute(banshare.value, settings, message.guild!, message);
+                            await message.edit({ components: finished.concat(report) });
+                        } else await message.edit({ embeds: [embed] });
+
+                        await message.reply(
+                            `This banshare was escalated to ${severity} severity. The explanation given is below:\n\n${reason}`,
+                        );
+                    } catch {}
+                }),
+            );
+
+            const embed = interaction.message!.embeds[0].toJSON();
+            embed.fields?.forEach((field) => field.name === "Severity" && (field.value = value));
+
+            await interaction.editReply({
+                embeds: [embed],
+                components: components(true, severity),
+            });
         }
     } else if (interaction.isStringSelectMenu()) {
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.BanMembers)) return;
