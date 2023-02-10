@@ -1,3 +1,4 @@
+import { TOKEN } from "$env/static/private";
 import { PUBLIC_DIS_API, PUBLIC_TCN_API } from "$env/static/public";
 import type { Handle } from "@sveltejs/kit";
 
