@@ -101,6 +101,8 @@ bot.once("ready", async () => {
 
 bot.on("interactionCreate", async (interaction) => {
     if (interaction.isChatInputCommand()) {
+        if (!["banshare"].includes(interaction.commandName)) return;
+
         await interaction.deferReply({ ephemeral: true });
 
         if (!interaction.inGuild()) return;
