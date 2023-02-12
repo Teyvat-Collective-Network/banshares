@@ -12,23 +12,33 @@ export function components(published: boolean, severity?: string): any[] {
                         customId: "rescind",
                         label: "Rescind",
                     },
-                    ...(severity === "low"
+                    ...(severity === "p3"
                         ? [
                               {
                                   type: ComponentType.Button,
                                   style: ButtonStyle.Primary,
-                                  customId: "escalate:medium",
-                                  label: "SEV: Medium",
+                                  customId: "escalate:p2",
+                                  label: "SEV: P2",
                               },
                           ]
                         : []),
-                    ...(severity === "low" || severity === "medium"
+                    ...(severity === "p3" || severity === "p2"
+                        ? [
+                              {
+                                  type: ComponentType.Button,
+                                  style: ButtonStyle.Primary,
+                                  customId: "escalate:p1",
+                                  label: "SEV: P1",
+                              },
+                          ]
+                        : []),
+                    ...(severity !== "p0"
                         ? [
                               {
                                   type: ComponentType.Button,
                                   style: ButtonStyle.Danger,
-                                  customId: "escalate:critical",
-                                  label: "SEV: Critical",
+                                  customId: "escalate:p0",
+                                  label: "SEV: P0",
                               },
                           ]
                         : []),
@@ -42,24 +52,31 @@ export function components(published: boolean, severity?: string): any[] {
             components: [
                 {
                     type: ComponentType.Button,
+                    style: ButtonStyle.Success,
+                    customId: "sev:p3",
+                    label: "SEV: P3",
+                    disabled: severity === "p3",
+                },
+                {
+                    type: ComponentType.Button,
                     style: ButtonStyle.Secondary,
-                    customId: "sev:low",
-                    label: "SEV: Low",
-                    disabled: severity === "low",
+                    customId: "sev:p2",
+                    label: "SEV: P2",
+                    disabled: severity === "p2",
                 },
                 {
                     type: ComponentType.Button,
                     style: ButtonStyle.Primary,
-                    customId: "sev:medium",
-                    label: "SEV: Medium",
-                    disabled: severity === "medium",
+                    customId: "sev:p1",
+                    label: "SEV: P1",
+                    disabled: severity === "p1",
                 },
                 {
                     type: ComponentType.Button,
                     style: ButtonStyle.Danger,
-                    customId: "sev:critical",
-                    label: "SEV: Critical",
-                    disabled: severity === "critical",
+                    customId: "sev:p0",
+                    label: "SEV: P0",
+                    disabled: severity === "P0",
                 },
             ],
         },

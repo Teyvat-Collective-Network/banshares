@@ -88,9 +88,9 @@ export const GET: RequestHandler = () =>
                                 description: "the autoban threshold",
                                 choices: [
                                     { name: "None", value: "none" },
-                                    { name: "Critical Only", value: "crit" },
-                                    { name: "Medium and Up", value: "med" },
-                                    { name: "All", value: "all" },
+                                    { name: "P0", value: "crit" },
+                                    { name: "P0 + P1", value: "med" },
+                                    { name: "P0, P1, and P2", value: "all" },
                                 ],
                                 required: true,
                             },

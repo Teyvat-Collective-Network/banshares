@@ -222,9 +222,9 @@ bot.on("interactionCreate", async (interaction) => {
                         `Set the autoban threshold to ${
                             {
                                 none: "none",
-                                crit: "critical only",
-                                med: "medium + critical",
-                                all: "all",
+                                crit: "P0 only",
+                                med: "P0 and P1",
+                                all: "P0, P1, and P2",
                             }[threshold]
                         }.`,
                     );
@@ -997,7 +997,7 @@ async function get_post(banshare: any, guild: string) {
 }
 
 const thresholds = { all: 0, med: 1, crit: 2, none: 3 } as any;
-const severities = { low: 0, medium: 1, critical: 2 } as any;
+const severities = { P0: 2, P1: 1, P2: 0, P3: -1 } as any;
 
 function autoban(threshold: string, severity: string) {
     return (thresholds[threshold] ?? Infinity) <= (severities[severity] ?? -Infinity);
