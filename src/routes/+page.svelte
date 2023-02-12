@@ -190,19 +190,22 @@
             </div>
             <div class="glass">
                 <h3>Severity</h3>
-                <p>The severity is used to determine auto-banning.</p>
+                <p>The severity is used to determine auto-banning. A lower number indicates a greater threat.</p>
                 <ul>
                     <li>
-                        <b>Low</b> &mdash; e.g. user causing a bit of trouble
+                        <b>P0</b> &mdash; e.g. raids, harassment, etc.
                     </li>
-                    <li><b>Medium</b> &mdash; e.g. low-threat scam bots</li>
+                    <li><b>P1</b> &mdash; e.g. low-threat scam bots</li>
                     <li>
-                        <b>Critical</b> &mdash; e.g. raids, harassment, etc.
+                        <b>P2</b> &mdash; e.g. user causing a bit of trouble
+                    </li>
+                    <li>
+                        <b>P3</b> &mdash; cases where the banshare must be manually reviewed (these can never be auto-banned)
                     </li>
                 </ul>
                 <select name="severity" required>
                     <option selected disabled hidden value=""> Select Severity </option>
-                    {#each ["Low", "Medium", "Critical"] as sev}
+                    {#each ["P0", "P1", "P2", "P3"] as sev}
                         <option
                             value={sev.toLowerCase()}
                             selected={form?.severity === sev.toLowerCase()}

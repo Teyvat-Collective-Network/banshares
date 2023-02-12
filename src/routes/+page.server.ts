@@ -57,7 +57,7 @@ export const actions: Actions = {
         if (!server) return abort(400, "You must select the server.");
         if (!severity) return abort(400, "You must select the severity.");
 
-        if (!["low", "medium", "critical"].includes(severity))
+        if (!severity.match(/^P[0-4]$/))
             return abort(400, "Invalid severity selection.");
 
         if (reason.length > 498)
