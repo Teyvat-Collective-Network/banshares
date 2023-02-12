@@ -49,8 +49,7 @@ export const actions: Actions = {
                 ...values,
             });
 
-        if (ids.length === 0)
-            return abort(400, "You must enter at least one user to banshare.");
+        if (ids.length === 0) return abort(400, "You must enter at least one user to banshare.");
 
         if (!reason) return abort(400, "You must enter a non-empty reason.");
         if (!evidence) return abort(400, "You must enter some evidence.");
@@ -60,13 +59,12 @@ export const actions: Actions = {
         if (!severity.match(/^P[0-4]$/))
             return abort(400, "Invalid severity selection.");
 
-        if (reason.length > 498)
-            return abort(400, "Maximum reason length is 498.");
+        if (reason.length > 498) return abort(400, "Maximum reason length is 498.");
 
         if (evidence.length > 1200)
             return abort(
                 400,
-                "Maximum evidence length is 1200. If you need more space, please create and link a document and include some basic information about it in the evidence field."
+                "Maximum evidence length is 1200. If you need more space, please create and link a document and include some basic information about it in the evidence field.",
             );
 
         const tcn_request = await fetch(`${PUBLIC_TCN_API}/users/${user.id}`);
@@ -74,25 +72,20 @@ export const actions: Actions = {
         if (!tcn_request.ok)
             return abort(
                 400,
-                "You do not appear to be a staff member of any TCN servers. Contact your server owner or a TCN observer if you believe this is a mistake."
+                "You do not appear to be a staff member of any TCN servers. Contact your server owner or a TCN observer if you believe this is a mistake.",
             );
 
         const tcn_data = await tcn_request.json();
 
         if (!tcn_data.guilds.includes(server))
-            return abort(
-                400,
-                "You are not a staff member on the server you selected."
-            );
+            return abort(400, "You are not a staff member on the server you selected.");
 
-        const server_request = await fetch(
-            `${PUBLIC_TCN_API}/guilds/${server}`
-        );
+        const server_request = await fetch(`${PUBLIC_TCN_API}/guilds/${server}`);
 
         if (!server_request.ok)
             return abort(
                 400,
-                "The server you selected does not appear to be in the TCN. (This message should never appear...)"
+                "The server you selected does not appear to be in the TCN. (This message should never appear...)",
             );
 
         const server_name = (await server_request.json()).name;
@@ -100,7 +93,7 @@ export const actions: Actions = {
         if (!bot.user)
             return abort(
                 500,
-                "Banshare bot is not ready to handle your request yet. Please wait for a few seconds."
+                "Banshare bot is not ready to handle your request yet. Please wait for a few seconds.",
             );
 
         const channel = bot.channels.cache.get(CHANNEL as string);
@@ -108,7 +101,7 @@ export const actions: Actions = {
         if (!channel?.isTextBased())
             return abort(
                 500,
-                "Banshare bot is not configured correctly: output channel is not a valid text-based channel."
+                "Banshare bot is not configured correctly: output channel is not a valid text-based channel.",
             );
 
         let id_list: string[] = [];
@@ -123,9 +116,7 @@ export const actions: Actions = {
                 if (!id.match(/^[1-9][0-9]{16,19}$/))
                     return abort(
                         400,
-                        `Invalid ID: <code>${escape(
-                            id
-                        )}</code> is not a valid Discord ID.`
+                        `Invalid ID: <code>${escape(id)}</code> is not a valid Discord ID.`,
                     );
 
             if (action === "Submit")
@@ -136,8 +127,8 @@ export const actions: Actions = {
                         return abort(
                             400,
                             `Invalid ID: <code>${escape(
-                                id
-                            )}</code> did not correspond to a valid user.`
+                                id,
+                            )}</code> did not correspond to a valid user.`,
                         );
                     }
 
@@ -151,9 +142,7 @@ export const actions: Actions = {
                     color: 0x2d3136,
                     fields: [
                         { name: "ID(s)", value: ids },
-                        ...(tags.length > 0
-                            ? [{ name: "Username(s)", value: tags }]
-                            : []),
+                        ...(tags.length > 0 ? [{ name: "Username(s)", value: tags }] : []),
                         { name: "Reason", value: reason },
                         { name: "Evidence", value: evidence },
                         {
@@ -162,43 +151,39 @@ export const actions: Actions = {
                         },
                         {
                             name: "Severity",
-                            value:
-                                severity[0].toUpperCase() + severity.slice(1),
+                            value: severity[0].toUpperCase() + severity.slice(1),
                         },
                     ],
                 },
             ],
         });
 
-        let post: Message;
+        let send_data = format(id_list.join(" "), tags.join(" "));
 
-        try {
-            post = await channel.send({
-                ...format(id_list.join(" "), tags.join(" ")),
-                components: components(false, severity),
-            });
-        } catch {
+        if (
+            send_data.embeds[0].title.length +
+                send_data.embeds[0].fields
+                    .map((field) => field.name.length + field.value.length)
+                    .reduce((x, y) => x + y) >
+            6000
+        ) {
             const iso = new Date().toISOString();
 
             try {
-                post = await channel.send({
-                    ...format(
-                        `<${await create_gist(
-                            `banshare-ids-${iso}`,
-                            `IDs for the banshare on ${iso}`,
-                            ids_output
-                        )}>`,
-                        ""
-                    ),
-                    components: components(false, severity),
-                });
-            } catch {
-                return abort(
-                    500,
-                    "Uploading your ID list / user tag list to as a gist failed."
+                send_data = format(
+                    `<${await create_gist(
+                        `banshare-ids-${iso}`,
+                        `IDs for the banshare on ${iso}`,
+                        ids_output,
+                    )}>`,
+                    "",
                 );
+            } catch {
+                return abort(500, "Uploading your ID list / user tag list as a gist failed.");
             }
         }
+
+        const post = await channel.send({ ...send_data, components: components(false, severity) });
 
         await db.banshares.insertOne({
             message: post.id,
@@ -218,7 +203,7 @@ export const actions: Actions = {
                             (urgent ? URGENT : NON_URGENT) ?? ""
                         } A banshare was just posted in ${channel} for review${
                             urgent ? " (**urgent**)" : ""
-                        }. If you wish to alter the severity, use the buttons below the banshare **before** publishing.`
+                        }. If you wish to alter the severity, use the buttons below the banshare **before** publishing.`,
                     );
                 } catch {}
         }
