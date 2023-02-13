@@ -997,7 +997,7 @@ async function get_post(banshare: any, guild: string) {
 }
 
 const thresholds = { all: 0, med: 1, crit: 2, none: 3 } as any;
-const severities = { P0: 2, P1: 1, P2: 0 } as any;
+const severities = { p0: 2, p1: 1, p2: 0 } as any;
 
 function autoban(threshold: string, severity: string) {
     return (thresholds[threshold] ?? Infinity) <= (severities[severity] ?? -Infinity);
