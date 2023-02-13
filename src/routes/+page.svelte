@@ -92,7 +92,8 @@
     <div class="glass">
         Logged in as <b>{data.user.username}</b><span style="opacity: 40%"
             >#{data.user.discriminator}</span
-        >. Not you? <a href="{PUBLIC_TCN_AUTH}/logout?redirect={encodeURIComponent(PUBLIC_DOMAIN)}">Log Out</a>
+        >. Not you?
+        <a href="{PUBLIC_TCN_AUTH}/logout?redirect={encodeURIComponent(PUBLIC_DOMAIN)}">Log Out</a>
     </div>
     {#if servers?.length === 0}
         <div class="error">
@@ -190,7 +191,10 @@
             </div>
             <div class="glass">
                 <h3>Severity</h3>
-                <p>The severity is used to determine auto-banning. A lower number indicates a greater threat.</p>
+                <p>
+                    The severity is used to determine auto-banning. A lower number indicates a
+                    greater threat.
+                </p>
                 <ul>
                     <li>
                         <b>P0</b> &mdash; e.g. raids, harassment, etc.
@@ -199,13 +203,10 @@
                     <li>
                         <b>P2</b> &mdash; e.g. user causing a bit of trouble
                     </li>
-                    <li>
-                        <b>P3</b> &mdash; cases where the banshare must be manually reviewed (these can never be auto-banned)
-                    </li>
                 </ul>
                 <select name="severity" required>
                     <option selected disabled hidden value=""> Select Severity </option>
-                    {#each ["P0", "P1", "P2", "P3"] as sev}
+                    {#each ["P0", "P1", "P2"] as sev}
                         <option
                             value={sev.toLowerCase()}
                             selected={form?.severity === sev.toLowerCase()}
