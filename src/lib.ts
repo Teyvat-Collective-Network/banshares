@@ -59,7 +59,7 @@ export function components(published: boolean, severity?: string): any[] {
                     style: ButtonStyle.Danger,
                     customId: "sev:p0",
                     label: "SEV: P0",
-                    disabled: severity === "P0",
+                    disabled: severity === "p0",
                 },
             ],
         },
