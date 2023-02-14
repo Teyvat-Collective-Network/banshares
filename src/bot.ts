@@ -942,7 +942,7 @@ async function execute(
 
             const prefix = `Banshare Executed; banned ${banned.length} user${
                 banned.length === 1 ? "" : "s"
-            }.\nOrigin: ${message.url}\nReasion: ${banshare.reason}`;
+            }.\nOrigin: ${message.url}\nReason: ${banshare.reason}`;
 
             try {
                 await channel.send(
