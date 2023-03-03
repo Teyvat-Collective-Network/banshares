@@ -40,7 +40,7 @@
     let error: string | undefined;
     let tag_list: string[] | undefined;
 
-    let session: string = crypto.randomUUID();
+    let session: string = `${Math.random()}`;
 
     let last: string = "";
 
