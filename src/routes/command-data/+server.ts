@@ -38,14 +38,12 @@ export const GET: RequestHandler = () =>
                             {
                                 type: ApplicationCommandOptionType.Subcommand,
                                 name: "here",
-                                description:
-                                    "set the banshare log channel to the current channel",
+                                description: "set the banshare log channel to the current channel",
                             },
                             {
                                 type: ApplicationCommandOptionType.Subcommand,
                                 name: "none",
-                                description:
-                                    "unset the banshare log channel and stop logging",
+                                description: "unset the banshare log channel and stop logging",
                             },
                         ],
                     },
@@ -57,8 +55,7 @@ export const GET: RequestHandler = () =>
                             {
                                 type: ApplicationCommandOptionType.Boolean,
                                 name: "enable",
-                                description:
-                                    "whether or not the ban button is enabled",
+                                description: "whether or not the ban button is enabled",
                                 required: true,
                             },
                         ],
@@ -71,8 +68,7 @@ export const GET: RequestHandler = () =>
                             {
                                 type: ApplicationCommandOptionType.Boolean,
                                 name: "enable",
-                                description:
-                                    "whether or not the Daedalus integration is enabled",
+                                description: "whether or not the Daedalus integration is enabled",
                                 required: true,
                             },
                         ],
@@ -80,12 +76,24 @@ export const GET: RequestHandler = () =>
                     {
                         type: ApplicationCommandOptionType.Subcommand,
                         name: "autoban",
-                        description: "set the autoban threshold",
+                        description: "set the autoban thresholds",
                         options: [
                             {
                                 type: ApplicationCommandOptionType.String,
-                                name: "threshold",
-                                description: "the autoban threshold",
+                                name: "default-threshold",
+                                description: "the autoban threshold for non-members",
+                                choices: [
+                                    { name: "None", value: "none" },
+                                    { name: "P0", value: "crit" },
+                                    { name: "P0 + P1", value: "med" },
+                                    { name: "P0, P1, and P2", value: "all" },
+                                ],
+                                required: true,
+                            },
+                            {
+                                type: ApplicationCommandOptionType.String,
+                                name: "member-threshold",
+                                description: "the autoban threshold for members",
                                 choices: [
                                     { name: "None", value: "none" },
                                     { name: "P0", value: "crit" },
@@ -98,5 +106,5 @@ export const GET: RequestHandler = () =>
                     },
                 ],
             },
-        ])
+        ]),
     );
