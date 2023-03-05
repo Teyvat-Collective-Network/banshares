@@ -210,23 +210,35 @@ bot.on("interactionCreate", async (interaction) => {
                         `${enable ? "Enabled" : "Disabled"} Daedalus integration.`,
                     );
                 } else if (subcommand === "autoban") {
-                    const threshold = interaction.options.getString("threshold", true);
+                    const non_member_threshold = interaction.options.getString(
+                        "default-threshold",
+                        true,
+                    );
+                    const member_threshold = interaction.options.getString(
+                        "member-threshold",
+                        true,
+                    );
 
                     await db.settings.findOneAndUpdate(
                         { guild: interaction.guild!.id },
-                        { $set: { autoban: threshold } },
+                        {
+                            $set: {
+                                autoban: non_member_threshold,
+                                autoban_member: member_threshold,
+                            },
+                        },
                         { upsert: true },
                     );
 
+                    const k = {
+                        none: "none",
+                        crit: "P0 only",
+                        med: "P0 and P1",
+                        all: "P0, P1, and P2",
+                    } as { [key: string]: string };
+
                     await interaction.editReply(
-                        `Set the autoban threshold to ${
-                            {
-                                none: "none",
-                                crit: "P0 only",
-                                med: "P0 and P1",
-                                all: "P0, P1, and P2",
-                            }[threshold]
-                        }.`,
+                        `Set the autoban threshold to ${k[non_member_threshold]} (${k[member_threshold]} will apply to server members).`,
                     );
                 }
             }
@@ -539,9 +551,7 @@ bot.on("interactionCreate", async (interaction) => {
                     places.map(async ({ guild, channel }) => {
                         if (!channel?.isTextBased()) return;
 
-                        const settings = await db.settings.findOne({
-                            guild,
-                        });
+                        const settings = await db.settings.findOne({ guild });
 
                         const threshold = settings?.autoban ?? "none";
 
@@ -584,20 +594,17 @@ bot.on("interactionCreate", async (interaction) => {
 
                     if (message.components?.[0]?.components?.[0]?.customId !== "-") return;
 
-                    await message.edit({
-                        components: autobanning.concat(report),
-                    });
+                    await message.edit({ components: autobanning.concat(report) });
 
                     await execute(
                         banshare.value,
                         await db.settings.findOne({ guild }),
                         message.guild!,
                         message,
+                        undefined,
                     );
 
-                    await message.edit({
-                        components: finished.concat(report),
-                    });
+                    await message.edit({ components: finished.concat(report) });
                 });
             }
         } else if (interaction.customId === "cancel") {
@@ -872,18 +879,28 @@ async function execute(
     const missed: string[] = [];
     const banned: User[] = [];
     const failed: User[] = [];
+    const skipped: User[] = [];
 
     for (const id of banshare.id_list as string[]) {
         let member: GuildMember | null = null;
         let user: User;
 
         try {
-            if (executor)
+            if (executor || settings.autoban_member)
                 try {
                     member = await guild.members.fetch(id);
                 } catch {}
-            if (member) user = member.user;
-            else user = await bot.users.fetch(id);
+            if (member) {
+                user = member.user;
+
+                if (
+                    settings.autoban_member &&
+                    !autoban(settings.autoban_member, banshare.severity)
+                ) {
+                    skipped.push(user);
+                    continue;
+                }
+            } else user = await bot.users.fetch(id);
         } catch {
             missed.push(id);
             continue;
@@ -948,7 +965,9 @@ async function execute(
                 await channel.send(
                     `${prefix}\nSuccess: ${banned.join(", ") || "(none)"}\nFailed: ${
                         failed.join(", ") || "(none)"
-                    }\nInvalid IDs: ${missed.join(", ") || "(none)"}`,
+                    }\nSkipped: ${skipped.join(", ") || "(none)"}\nInvalid IDs: ${
+                        missed.join(", ") || "(none)"
+                    }`,
                 );
             } catch {
                 await channel.send({
@@ -960,6 +979,8 @@ async function execute(
                                     banned.map((x) => `${x.tag} (${x.id})`).join(", ") || "(none)"
                                 }\nFailed: ${
                                     failed.map((x) => `${x.tag} (${x.id})`).join(", ") || "(none)"
+                                }\nSkipped: ${
+                                    skipped.map((x) => `${x.tag} (${x.id})`).join(", ") || "(none)"
                                 }\nInvalid IDs: ${missed.join(", ") || "(none)"}`,
                                 "utf-8",
                             ),
