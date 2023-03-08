@@ -507,11 +507,6 @@ bot.on("interactionCreate", async (interaction) => {
                     const message = await interaction.message.fetchReference();
                     await message.edit({ components: components(true, banshare.value.severity) });
                     embeds = message.embeds.map((e) => e.toJSON());
-
-                    if (message.crosspostable)
-                        try {
-                            await message.crosspost();
-                        } catch {}
                 } catch {
                     await interaction.editReply({
                         content: "The original banshare could not be found.",
