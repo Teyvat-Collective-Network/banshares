@@ -672,7 +672,7 @@ bot.on("interactionCreate", async (interaction) => {
                     if (!channel?.isTextBased()) throw 0;
 
                     const message = await channel.messages.fetch(post.message);
-                    await message.edit({ components: rescinded }).catch(() => {});
+                    await message.edit({ embeds: [], components: rescinded }).catch(() => {});
                     await message.reply(explanation);
                 } catch {}
             }
