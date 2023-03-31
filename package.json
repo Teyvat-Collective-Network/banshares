@@ -23,7 +23,7 @@
 	"type": "module",
 	"dependencies": {
 		"@daedalus-discord/webkit": "^0.0.35",
-		"discord.js": "^14.7.1",
+		"discord.js": "^14.8.0",
 		"dotenv": "^16.0.3",
 		"mongodb": "^4.13.0",
 		"octokit": "^2.0.14",
