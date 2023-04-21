@@ -912,7 +912,7 @@ async function execute(
             )
                 throw 0;
 
-            await guild.bans.create(id);
+            await guild.bans.create(id, { reason: "TCN Banshare: " + (banshare.reason ?? "(missing reason)" });
             banned.push(user);
 
             if (settings?.daedalus) {
