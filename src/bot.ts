@@ -996,7 +996,8 @@ async function execute(
                     console.error(error);
                 }
             }
-        } catch {
+        } catch (error) {
+            console.error(error);
             failed.push(user);
         }
     }
