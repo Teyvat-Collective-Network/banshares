@@ -542,64 +542,55 @@ bot.on("interactionCreate", async (interaction) => {
                     }))
                     .filter(({ channel }) => channel?.isTextBased());
 
-                await Promise.all(
-                    places.map(async ({ guild, channel }) => {
-                        if (!channel?.isTextBased()) return;
-
-                        const settings = await db.settings.findOne({ guild });
-
-                        const threshold = settings?.autoban ?? "none";
-
-                        let components: any[] = [];
-
-                        if (!banshare.value!.id_list?.length) {
-                            // Submitted without checking IDs, so no automation is possible.
-                        } else if (autoban(threshold, banshare.value!.severity)) {
-                            components = autoban_scheduled;
-                        } else if (!settings?.no_button) {
-                            components = [
-                                {
-                                    type: ComponentType.ActionRow,
-                                    components: [
-                                        {
-                                            type: ComponentType.Button,
-                                            style: ButtonStyle.Danger,
-                                            customId: "ban",
-                                            label: "Ban",
-                                        },
-                                    ],
-                                },
-                            ];
-                        }
-
-                        const post = await channel.send({
-                            embeds,
-                            components: components.concat(report),
-                        });
-
-                        await save(banshare, guild, post);
-                    }),
-                );
-
                 places.forEach(async ({ guild, channel }) => {
                     if (!channel?.isTextBased()) return;
 
-                    const message = await get_post(banshare, guild);
-                    if (!message) return;
+                    const settings = await db.settings.findOne({ guild });
 
-                    if (message.components?.[0]?.components?.[0]?.customId !== "-") return;
+                    const threshold = settings?.autoban ?? "none";
 
-                    await message.edit({ components: autobanning.concat(report) });
+                    let components: any[] = [];
+
+                    if (!banshare.value!.id_list?.length) {
+                        // Submitted without checking IDs, so no automation is possible.
+                    } else if (autoban(threshold, banshare.value!.severity)) {
+                        components = autoban_scheduled;
+                    } else if (!settings?.no_button) {
+                        components = [
+                            {
+                                type: ComponentType.ActionRow,
+                                components: [
+                                    {
+                                        type: ComponentType.Button,
+                                        style: ButtonStyle.Danger,
+                                        customId: "ban",
+                                        label: "Ban",
+                                    },
+                                ],
+                            },
+                        ];
+                    }
+
+                    const post = await channel.send({
+                        embeds,
+                        components: components.concat(report),
+                    });
+
+                    await save(banshare, guild, post);
+
+                    if (post.components?.[0]?.components?.[0]?.customId !== "-") return;
+
+                    await post.edit({ components: autobanning.concat(report) });
 
                     await execute(
                         banshare.value,
                         await db.settings.findOne({ guild }),
-                        message.guild!,
-                        message,
+                        post.guild!,
+                        post,
                         undefined,
                     );
 
-                    await message.edit({ components: finished.concat(report) });
+                    await post.edit({ components: finished.concat(report) });
                 });
             }
         } else if (interaction.customId === "cancel") {
