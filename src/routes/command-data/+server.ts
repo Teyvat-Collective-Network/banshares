@@ -106,5 +106,12 @@ export const GET: RequestHandler = () =>
                     },
                 ],
             },
-        ]),
+            {
+                type: ApplicationCommandType.ChatInput,
+                name: "banshare-publish",
+                description: "publish an arbitrary message through the banshare channels",
+                defaultMemberPermissions: "0",
+                dmPermission: false,
+            }
+        ])
     );
